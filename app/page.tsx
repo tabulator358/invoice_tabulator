@@ -166,6 +166,53 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Resources Section */}
+      <section className="py-24 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          <div>
+            <h3 className="text-3xl font-bold text-gray-900 mb-6 text-center">Google Sheets Links</h3>
+            <div className="space-y-4">
+              <div className="p-6 border border-gray-200 rounded-xl">
+                <p className="text-lg font-semibold text-gray-900 mb-2">Preview sheet</p>
+                <Link
+                  href="https://docs.google.com/spreadsheets/d/1CFG2-4_wD285WKL3NKCmIi4IJru2m9pIB5In0QS-jus/edit?usp=sharing"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-gray-900 font-medium underline underline-offset-4"
+                >
+                  Open in Google Sheets
+                </Link>
+              </div>
+
+              <div className="p-6 border border-gray-200 rounded-xl">
+                <p className="text-lg font-semibold text-gray-900 mb-2">Template table (source)</p>
+                <Link
+                  href="https://docs.google.com/spreadsheets/d/1CFG2-4_wD285WKL3NKCmIi4IJru2m9pIB5In0QS-jus/copy"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-gray-900 font-medium underline underline-offset-4"
+                >
+                  Make your own copy
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-3xl font-bold text-gray-900 mb-6 text-center">Video walkthrough</h3>
+            <div className="relative pt-[56.25%] rounded-2xl overflow-hidden shadow-lg">
+              <iframe
+                className="absolute inset-0 w-full h-full"
+                src="https://www.youtube.com/embed/dX-3886-0BM"
+                title="Invoicer demo video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="bg-gray-900 text-white py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

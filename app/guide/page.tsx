@@ -31,6 +31,22 @@ export default function GuidePage() {
           Learn how to generate professional invoices directly from your Google Sheets in minutes.
         </p>
 
+        <section className="mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Video walkthrough</h2>
+          <p className="text-gray-600 text-center mb-6">
+            Prefer to watch instead of read? This short video shows the exact setup from spreadsheet to finished invoice.
+          </p>
+          <div className="relative pt-[56.25%] rounded-2xl overflow-hidden shadow-lg bg-black">
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src="https://www.youtube.com/embed/dX-3886-0BM"
+              title="Invoicer demo video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </section>
+
         {/* Step 1 */}
         <section className="mb-16">
           <div className="flex items-center gap-4 mb-6">
