@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(yarn:*)",
+      "Bash(pnpm:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(ls:*)",
+      "Bash(pwd:*)",
+      "Bash(node:*)",
+      "Read(**/*.tsx)",
+      "Read(**/*.ts)",
+      "Read(**/*.jsx)",
+      "Read(**/*.js)",
+      "Read(**/*.json)",
+      "Read(**/*.md)",
+      "Read(**/*.css)",
+      "Read(**/*.scss)",
+      "Read(**/*.html)",
+      "Read(.gitignore)",
+      "Read(package.json)",
+      "Read(tsconfig.json)",
+      "Read(next.config.*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(git add:*)",
+      "Bash(rm:*)",
+      "Bash(rmdir:*)",
+      "Write(**)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(**/*.key)",
+      "Read(**/*.pem)",
+      "Bash(curl:*)",
+      "Bash(wget:*)"
+    ]
+  }
+}
