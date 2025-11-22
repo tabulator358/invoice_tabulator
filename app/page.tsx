@@ -154,7 +154,7 @@ export default function Home() {
 
           <div className="mt-12 text-center">
             <Link
-              href="http://localhost:3000/guide"
+              href="/guide"
               className="inline-flex items-center gap-2 text-gray-900 font-medium hover:underline"
             >
               See the complete setup guide

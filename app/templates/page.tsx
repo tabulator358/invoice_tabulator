@@ -283,7 +283,7 @@ export default function TemplatesPage() {
               <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Home
               </Link>
-              <Link href="http://localhost:3000/guide" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="/guide" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Guide
               </Link>
             </nav>
@@ -371,7 +371,7 @@ export default function TemplatesPage() {
             Every template accepts the same URL parameters, making it easy to switch between designs without changing your Google Sheets formula.
           </p>
           <Link
-            href="http://localhost:3000/guide"
+            href="/guide"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
           >
             Learn How to Use Templates
