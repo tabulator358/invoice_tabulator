@@ -1,18 +1,20 @@
 "use client";
 
 import { useMemo, useRef } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { InvoiceData } from "@/types/invoice";
+import { generateSPAYD } from "@/lib/spayd";
 
-interface InvoiceTemplateProps {
+interface CZInvoiceTemplateProps {
   templateId: number;
   invoiceData: InvoiceData;
   total: number;
 }
 
-// Template configurations
+// Template configurations (same as InvoiceTemplate)
 const getTemplateConfig = (id: number) => {
   // Ensure id is a valid positive number
-  const validId = (isNaN(id) || id < 1) ? 1 : Math.floor(id);
+  const validId = (isNaN(id) || id <= 0) ? 1 : Math.floor(id);
   
   const configs = [
     // Template 1: Classic Professional
@@ -52,11 +54,30 @@ const getTemplateConfig = (id: number) => {
   return additionalColors[(validId - 11) % additionalColors.length];
 };
 
-export default function InvoiceTemplate({ templateId, invoiceData, total }: InvoiceTemplateProps) {
+// QR Code Component
+const QRCodeSection = ({ spaydString, config }: { spaydString: string; config: ReturnType<typeof getTemplateConfig> }) => {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="text-sm font-semibold mb-2" style={{ color: config.primaryColor }}>
+        QR Platba
+      </div>
+      <div className="bg-white p-3 rounded-lg border-2" style={{ borderColor: config.primaryColor }}>
+        <QRCodeSVG value={spaydString} size={150} level="M" />
+      </div>
+      <div className="text-xs text-gray-500 mt-2 text-center max-w-[150px]">
+        Naskenujte pro platbu
+      </div>
+    </div>
+  );
+};
+
+export default function CZInvoiceTemplate({ templateId, invoiceData, total }: CZInvoiceTemplateProps) {
   const invoiceRef = useRef<HTMLDivElement>(null);
   const config = getTemplateConfig(templateId);
+  const spaydString = useMemo(() => generateSPAYD(invoiceData, total), [invoiceData, total]);
+  
   const currencyFormatter = useMemo(() => {
-    const codesToTry = [invoiceData.currencyCode, "USD"].filter(Boolean) as string[];
+    const codesToTry = [invoiceData.currencyCode, "CZK"].filter(Boolean) as string[];
     for (const code of codesToTry) {
       try {
         return new Intl.NumberFormat(undefined, { style: "currency", currency: code });
@@ -64,7 +85,7 @@ export default function InvoiceTemplate({ templateId, invoiceData, total }: Invo
         // continue with next code
       }
     }
-    return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" });
+    return new Intl.NumberFormat(undefined, { style: "currency", currency: "CZK" });
   }, [invoiceData.currencyCode]);
   const formatAmount = (value: number) => currencyFormatter.format(value);
 
@@ -254,12 +275,17 @@ export default function InvoiceTemplate({ templateId, invoiceData, total }: Invo
                   </div>
                 </div>
 
-                {/* Bank Account */}
-                <div className="mb-8">
-                  <div className="text-sm font-semibold mb-2" style={{ color: config.primaryColor }}>
-                    BANK ACCOUNT
+                {/* Payment Section with QR Code and Bank Account */}
+                <div className="mb-8 grid grid-cols-2 gap-8 items-start">
+                  <div>
+                    <div className="text-sm font-semibold mb-2" style={{ color: config.primaryColor }}>
+                      BANK ACCOUNT
+                    </div>
+                    <div className="text-gray-700 font-mono">{invoiceData.bankAccount}</div>
                   </div>
-                  <div className="text-gray-700 font-mono">{invoiceData.bankAccount}</div>
+                  <div>
+                    <QRCodeSection spaydString={spaydString} config={config} />
+                  </div>
                 </div>
 
                 {/* Comment */}
@@ -378,6 +404,19 @@ export default function InvoiceTemplate({ templateId, invoiceData, total }: Invo
                 </div>
               </div>
 
+              {/* Payment Section with QR Code */}
+              <div className="mb-8 flex justify-between items-start gap-8">
+                <div className="flex-1">
+                  <div className="text-xs font-bold mb-2 tracking-wider" style={{ color: config.primaryColor }}>
+                    PAYMENT INFORMATION
+                  </div>
+                  <div className="font-mono text-sm text-gray-800">{invoiceData.bankAccount}</div>
+                </div>
+                <div>
+                  <QRCodeSection spaydString={spaydString} config={config} />
+                </div>
+              </div>
+
               {/* Comment */}
               {invoiceData.comment && (
                 <div className="mt-8 p-6 rounded" style={{ backgroundColor: config.accentColor }}>
@@ -493,6 +532,19 @@ export default function InvoiceTemplate({ templateId, invoiceData, total }: Invo
                 </div>
               </div>
 
+              {/* Payment Section with QR Code */}
+              <div className="mb-12 flex justify-between items-start gap-12">
+                <div className="flex-1">
+                  <div className="text-xs uppercase tracking-widest text-gray-400 mb-2">
+                    Payment Details
+                  </div>
+                  <div className="text-gray-800 font-mono text-sm">{invoiceData.bankAccount}</div>
+                </div>
+                <div>
+                  <QRCodeSection spaydString={spaydString} config={config} />
+                </div>
+              </div>
+
               {/* Comment */}
               {invoiceData.comment && (
                 <div className="border-t border-gray-200 pt-8">
@@ -598,12 +650,17 @@ export default function InvoiceTemplate({ templateId, invoiceData, total }: Invo
                 </div>
               </div>
 
-              {/* Bank Info */}
-              <div className="mb-8 p-6" style={{ backgroundColor: config.accentColor }}>
-                <div className="text-xs font-black mb-2 tracking-wider" style={{ color: config.primaryColor }}>
-                  PAYMENT DETAILS
+              {/* Payment Section with QR Code */}
+              <div className="mb-8 grid grid-cols-2 gap-8 items-start">
+                <div className="p-6" style={{ backgroundColor: config.accentColor }}>
+                  <div className="text-xs font-black mb-2 tracking-wider" style={{ color: config.primaryColor }}>
+                    PAYMENT DETAILS
+                  </div>
+                  <div className="text-gray-800 font-mono font-bold text-lg">{invoiceData.bankAccount}</div>
                 </div>
-                <div className="text-gray-800 font-mono font-bold text-lg">{invoiceData.bankAccount}</div>
+                <div className="flex justify-center">
+                  <QRCodeSection spaydString={spaydString} config={config} />
+                </div>
               </div>
 
               {/* Comment */}

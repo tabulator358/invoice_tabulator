@@ -2,7 +2,7 @@
 
 import { useSearchParams, useParams } from "next/navigation";
 import { Suspense } from "react";
-import InvoiceTemplate from "./InvoiceTemplate";
+import CZInvoiceTemplate from "@/app/CZ/[templateId]/CZInvoiceTemplate";
 
 const currencyAliases: Record<string, string> = {
   usd: "USD",
@@ -26,35 +26,27 @@ const currencyAliases: Record<string, string> = {
 };
 
 const resolveCurrencyCode = (value: string | null) => {
-  if (!value) return "USD";
+  if (!value) return "CZK"; // Default to CZK for Czech templates
   const normalized = value.trim().toLowerCase();
-  if (!normalized) return "USD";
+  if (!normalized) return "CZK";
   if (currencyAliases[normalized]) return currencyAliases[normalized];
   if (normalized.length === 3 && /^[a-z]{3}$/i.test(normalized)) {
     return normalized.toUpperCase();
   }
-  return "USD";
+  return "CZK";
 };
 
-function InvoiceContent() {
+function CZInvoiceContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   
-  // Parse templateId - handle cases like "x1" or "1" or invalid values
+  // Parse templateId - handle cases like "1" or invalid values
   let templateId = 1; // default
   const templateIdParam = params.templateId as string;
   if (templateIdParam) {
-    // If starts with 'x', extract number after it (e.g., "x1" -> 1)
-    if (templateIdParam.startsWith("x") || templateIdParam.startsWith("X")) {
-      const num = parseInt(templateIdParam.substring(1));
-      if (!isNaN(num) && num > 0) {
-        templateId = num;
-      }
-    } else {
-      const num = parseInt(templateIdParam);
-      if (!isNaN(num) && num > 0) {
-        templateId = num;
-      }
+    const num = parseInt(templateIdParam);
+    if (!isNaN(num) && num > 0) {
+      templateId = num;
     }
   }
   
@@ -78,7 +70,7 @@ function InvoiceContent() {
   const total = invoiceData.quantity * invoiceData.price;
 
   return (
-    <InvoiceTemplate
+    <CZInvoiceTemplate
       templateId={templateId}
       invoiceData={invoiceData}
       total={total}
@@ -86,10 +78,11 @@ function InvoiceContent() {
   );
 }
 
-export default function InvoicePage() {
+export default function CZInvoicePage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-      <InvoiceContent />
+      <CZInvoiceContent />
     </Suspense>
   );
 }
+
