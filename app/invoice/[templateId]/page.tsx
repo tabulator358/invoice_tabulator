@@ -3,6 +3,7 @@
 import { useSearchParams, useParams } from "next/navigation";
 import { Suspense } from "react";
 import InvoiceTemplate from "./InvoiceTemplate";
+import CZInvoiceTemplate from "@/app/CZ/[templateId]/CZInvoiceTemplate";
 
 const currencyAliases: Record<string, string> = {
   usd: "USD",
@@ -40,12 +41,22 @@ function InvoiceContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   
-  // Parse templateId - handle cases like "x1" or "1" or invalid values
+  // Parse templateId - handle cases like "x1", "cz1", "1" or invalid values
   let templateId = 1; // default
+  let isCZTemplate = false;
   const templateIdParam = params.templateId as string;
   if (templateIdParam) {
+    const lowerParam = templateIdParam.toLowerCase();
+    // If starts with 'cz', it's a Czech template with QR codes
+    if (lowerParam.startsWith("cz")) {
+      isCZTemplate = true;
+      const num = parseInt(templateIdParam.substring(2));
+      if (!isNaN(num) && num > 0) {
+        templateId = num;
+      }
+    }
     // If starts with 'x', extract number after it (e.g., "x1" -> 1)
-    if (templateIdParam.startsWith("x") || templateIdParam.startsWith("X")) {
+    else if (templateIdParam.startsWith("x") || templateIdParam.startsWith("X")) {
       const num = parseInt(templateIdParam.substring(1));
       if (!isNaN(num) && num > 0) {
         templateId = num;
@@ -58,7 +69,11 @@ function InvoiceContent() {
     }
   }
   
-  const currencyCode = resolveCurrencyCode(searchParams.get("currency"));
+  // For CZ templates, default to CZK currency if not specified
+  const currencyParam = searchParams.get("currency");
+  const currencyCode = isCZTemplate 
+    ? (currencyParam ? resolveCurrencyCode(currencyParam) : "CZK")
+    : resolveCurrencyCode(currencyParam);
 
   // Parse invoice data from URL parameters
   const invoiceData = {
@@ -76,6 +91,17 @@ function InvoiceContent() {
   };
 
   const total = invoiceData.quantity * invoiceData.price;
+
+  // Use CZInvoiceTemplate for Czech templates (with QR codes)
+  if (isCZTemplate) {
+    return (
+      <CZInvoiceTemplate
+        templateId={templateId}
+        invoiceData={invoiceData}
+        total={total}
+      />
+    );
+  }
 
   return (
     <InvoiceTemplate
