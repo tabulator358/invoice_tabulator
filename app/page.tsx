@@ -1,4 +1,5 @@
 import Link from "next/link";
+import InvoiceTableDemo from "@/app/components/InvoiceTableDemo";
 
 export default function Home() {
   return (
@@ -17,6 +18,12 @@ export default function Home() {
               </Link>
               <Link href="#guide" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Guide
+              </Link>
+              <Link
+                href="#invoice-table"
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Invoice table
               </Link>
             </nav>
           </div>
@@ -47,6 +54,20 @@ export default function Home() {
               How It Works
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Interactive invoice table (demo) */}
+      <section id="invoice-table" className="border-y border-gray-200 bg-gray-50 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h3 className="text-3xl font-bold text-gray-900 text-center mb-4">
+            The invoice table
+          </h3>
+          <p className="text-center text-gray-600 mb-10 max-w-2xl mx-auto">
+            Edit any cell below — the Link column updates automatically with the same URL
+            shape as your Google Sheets formula.
+          </p>
+          <InvoiceTableDemo />
         </div>
       </section>
 

@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import { InvoiceData } from "@/types/invoice";
+import { exportInvoicePdf } from "@/lib/pdfInvoice";
 
 interface InvoiceTemplateProps {
   templateId: number;
@@ -68,95 +69,8 @@ export default function InvoiceTemplate({ templateId, invoiceData, total }: Invo
   }, [invoiceData.currencyCode]);
   const formatAmount = (value: number) => currencyFormatter.format(value);
 
-  const inlineComputedStyles = (element: HTMLElement) => {
-    const resolver = document.createElement("div");
-    resolver.style.position = "fixed";
-    resolver.style.opacity = "0";
-    resolver.style.pointerEvents = "none";
-    document.body.appendChild(resolver);
-
-    const colorNeedsNormalization = (value: string) => /(?:^|\s)(?:oklch|oklab|lab|color\()/i.test(value);
-    const normalizeColor = (prop: StyleProp, value: string) => {
-      if (!value) return value;
-      resolver.style[prop] = "";
-      resolver.style[prop] = value;
-      return window.getComputedStyle(resolver)[prop] || value;
-    };
-
-    type StyleProp =
-      | "color"
-      | "backgroundColor"
-      | "borderColor"
-      | "borderTopColor"
-      | "borderRightColor"
-      | "borderBottomColor"
-      | "borderLeftColor"
-      | "outlineColor"
-      | "fill"
-      | "stroke";
-
-    const properties: StyleProp[] = [
-      "color",
-      "backgroundColor",
-      "borderColor",
-      "borderTopColor",
-      "borderRightColor",
-      "borderBottomColor",
-      "borderLeftColor",
-      "outlineColor",
-      "fill",
-      "stroke",
-    ] as const;
-
-    const allNodes = [element, ...Array.from(element.querySelectorAll<HTMLElement>("*"))];
-    allNodes.forEach((node) => {
-      const computed = window.getComputedStyle(node);
-      properties.forEach((prop) => {
-        const value = computed[prop];
-        if (value && value !== "initial" && value !== "unset" && value !== "inherit") {
-          const finalValue = colorNeedsNormalization(value) ? normalizeColor(prop, value) : value;
-          node.style[prop] = finalValue;
-        }
-      });
-    });
-
-    document.body.removeChild(resolver);
-  };
-
   const handleDownloadPDF = async () => {
-    if (typeof window === "undefined") return;
-
-    // Dynamically import html2pdf
-    const html2pdf = (await import("html2pdf.js")).default;
-
-    const element = invoiceRef.current;
-    if (!element) return;
-
-    const clonedElement = element.cloneNode(true) as HTMLElement;
-
-    const hiddenContainer = document.createElement("div");
-    hiddenContainer.style.position = "fixed";
-    hiddenContainer.style.pointerEvents = "none";
-    hiddenContainer.style.opacity = "0";
-    hiddenContainer.style.left = "-10000px";
-    hiddenContainer.appendChild(clonedElement);
-    document.body.appendChild(hiddenContainer);
-
-    inlineComputedStyles(clonedElement);
-
-    const opt = {
-      margin: 0,
-      filename: `${invoiceData.invoiceNumber}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    };
-
-    try {
-      await html2pdf().set(opt).from(clonedElement).save();
-    } finally {
-      document.body.removeChild(hiddenContainer);
-    }
+    await exportInvoicePdf(invoiceData, { total, title: "INVOICE" });
   };
 
   // Layout variations based on template ID
