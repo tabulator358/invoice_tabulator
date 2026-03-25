@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 export type InvoiceTableRow = {
   templateId: string;
@@ -110,11 +110,10 @@ const textareaClass = `${inputClass} resize-y min-h-[4.5rem] font-sans`;
 
 export default function InvoiceTableDemo() {
   const [rows, setRows] = useState<InvoiceTableRow[]>(INITIAL_ROWS);
-  const [origin, setOrigin] = useState("");
-
-  useEffect(() => {
-    setOrigin(typeof window !== "undefined" ? window.location.origin : "");
-  }, []);
+  // Client component: safe to read from window during initial render in the browser.
+  const [origin] = useState(() =>
+    typeof window !== "undefined" ? window.location.origin : ""
+  );
 
   const updateRow = (index: number, patch: Partial<InvoiceTableRow>) => {
     setRows((prev) =>

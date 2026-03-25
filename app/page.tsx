@@ -38,7 +38,7 @@ export default function Home() {
           </h2>
           <p className="text-xl text-gray-600 mb-8">
             Just add your data to Google Sheets. We turn it into beautiful invoices instantly.
-            No account needed. Seriously, it's that simple.
+            No account needed. Seriously, it&apos;s that simple.
           </p>
           <div className="flex gap-4 justify-center">
             <Link
@@ -127,7 +127,7 @@ export default function Home() {
       <section id="guide" className="py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h3 className="text-3xl font-bold text-gray-900 text-center mb-16">
-            3 Steps. That's It.
+            3 Steps. That&apos;s It.
           </h3>
           <div className="space-y-12">
             <div className="flex gap-8 items-start">
@@ -139,7 +139,7 @@ export default function Home() {
                   Create a Google Sheet
                 </h4>
                 <p className="text-gray-600">
-                  Add columns for your invoice info. Invoice number, who's paying, amount, date - whatever you need.
+                  Add columns for your invoice info. Invoice number, who&apos;s paying, amount, date - whatever you need.
                 </p>
               </div>
             </div>
@@ -241,7 +241,7 @@ export default function Home() {
             Start Now. Takes 5 Minutes.
           </h3>
           <p className="text-xl text-gray-300 mb-8">
-            No credit card. No signup. Just pick a template and you're done.
+            No credit card. No signup. Just pick a template and you&apos;re done.
           </p>
           <Link
             href="/templates"

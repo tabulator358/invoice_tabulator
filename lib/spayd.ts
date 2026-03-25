@@ -56,7 +56,7 @@ export function generateSPAYD(invoiceData: InvoiceData, total: number): string {
   // Message (MSG) - optional, max 60 characters, UTF-8 (no URL encoding)
   // Remove special characters that might cause issues
   if (invoiceData.comment) {
-    let message = invoiceData.comment
+    const message = invoiceData.comment
       .replace(/[*]/g, "") // Remove asterisks (SPAYD delimiter)
       .replace(/\n/g, " ") // Replace newlines with spaces
       .trim()
@@ -66,7 +66,7 @@ export function generateSPAYD(invoiceData: InvoiceData, total: number): string {
     }
   } else if (invoiceData.invoiceNumber) {
     // Use invoice number as fallback message if no comment
-    let message = `Faktura ${invoiceData.invoiceNumber}`
+    const message = `Faktura ${invoiceData.invoiceNumber}`
       .replace(/[*]/g, "")
       .trim()
       .substring(0, 60);
