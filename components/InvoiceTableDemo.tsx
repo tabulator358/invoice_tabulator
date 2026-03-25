@@ -110,10 +110,6 @@ const textareaClass = `${inputClass} resize-y min-h-[4.5rem] font-sans`;
 
 export default function InvoiceTableDemo() {
   const [rows, setRows] = useState<InvoiceTableRow[]>(INITIAL_ROWS);
-  // Client component: safe to read from window during initial render in the browser.
-  const [origin] = useState(() =>
-    typeof window !== "undefined" ? window.location.origin : ""
-  );
 
   const updateRow = (index: number, patch: Partial<InvoiceTableRow>) => {
     setRows((prev) =>
@@ -155,7 +151,7 @@ export default function InvoiceTableDemo() {
         <tbody>
           {rows.map((row, index) => {
             const href = hrefs[index];
-            const fullUrl = origin ? `${origin}${href}` : href;
+            const fullUrl = href; // Keep SSR/CSR output consistent for hydration.
             return (
               <tr key={index} className="hover:bg-gray-50/80">
                 <td className={cellClass}>

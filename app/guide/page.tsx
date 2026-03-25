@@ -98,7 +98,11 @@ export default function GuidePage() {
                   </tr>
                   <tr>
                     <td className="py-3 px-3 font-mono text-gray-900">bankAccount</td>
-                    <td className="py-3 px-3 text-gray-600">Bank account for payment</td>
+                    <td className="py-3 px-3 text-gray-600">
+                      Bank account for payment
+                      <br />
+                      If you use prefix (předčíslí): use <span className="font-mono">prefix-accountNumber/XXXX</span> with exactly one '-' between prefix and account.
+                    </td>
                     <td className="py-3 px-3 text-gray-700">123456789/0100</td>
                   </tr>
                   <tr>
