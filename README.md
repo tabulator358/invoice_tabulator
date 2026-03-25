@@ -52,6 +52,16 @@ All templates accept the following URL parameters:
 | `price` | Price per unit | Yes | 150.00 |
 | `comment` | Additional notes | No | Thank you for your business! |
 
+## Czech QR Payment (SPAYD)
+
+- `ACC` is always generated as a Czech IBAN (`CZ...`) to stay compliant with SPAYD.
+- Local account formats are automatically converted to IBAN:
+  - `prefix-account/bankCode` (for example `7720-77628031/0710`)
+  - `account/bankCode` (for example `77628031/0710`)
+  - `prefix-account` + separate `bank_code` (for API route)
+- Variable symbol is encoded as `X-VS` (Czech extension key).
+- Messages are sanitized for SPAYD (single line, without `*`, max 60 chars).
+
 ## Google Sheets Integration
 
 ### Step 1: Create Your Spreadsheet

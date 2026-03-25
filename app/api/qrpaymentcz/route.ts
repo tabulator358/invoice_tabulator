@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
+import { formatAccountForSPAYD } from "@/lib/spayd";
 
 export const runtime = "nodejs";
 
@@ -27,44 +28,6 @@ function sanitizeMsg(raw: string): string {
     .substring(0, MAX_MSG_LEN);
 }
 
-function buildSpaydAcc(payToRaw: string, bankCodePadded: string): string {
-  const cleaned = payToRaw
-    .trim()
-    .replace(/\s+/g, "")
-    .replace(/[–—−]/g, "-"); // Normalize copy/paste dashes to '-'
-  // If it's already an IBAN, use as-is.
-  if (/^CZ[A-Z0-9]{2,}/i.test(cleaned)) {
-    return cleaned.toUpperCase();
-  }
-
-  // Expected Czech account is commonly represented as:
-  //   prefix-accountNumber (input uses '-' between prefix and account number)
-  // We convert it to the "prefix+accountNumber(6 digits)" form:
-  //   ACC: {10-digit-account}/{bankCode(4 digits)}
-  //
-  // Example:
-  //   pay_to=7720-77628031, bank_code=710
-  //   => account=7720 + last6(77628031)=628031 => 7720628031
-  // Allow exactly one '-' between prefix and account number; if the input contains
-  // multiple '-', we still treat the first '-' as the separator and remove the rest.
-  const [prefixRaw, ...rest] = cleaned.split("-");
-  if (prefixRaw && rest.length > 0) {
-    const prefixDigits = prefixRaw.replace(/\D/g, "");
-    const accountDigits = rest.join("").replace(/\D/g, "");
-
-    // Preserve the dash exactly like it is in the URL input:
-    // pay_to=7720-77628031 => ACC:7720-77628031/0710
-    const czechAccount = `${prefixDigits}-${accountDigits}`;
-    return `${czechAccount}/${bankCodePadded}`;
-  }
-
-  // Fallback: treat pay_to as already numeric.
-  const numeric = cleaned.replace(/\D/g, "");
-  // Czech accounts have 10 digits; if longer, take last 10.
-  const czechAccount = numeric.length >= 10 ? numeric.slice(-10) : numeric.padStart(10, "0");
-  return `${czechAccount}/${bankCodePadded}`;
-}
-
 function buildSpaydFromSearchParams(searchParams: URLSearchParams): string {
   const payTo = searchParams.get("pay_to")?.trim();
   const bankCode = searchParams.get("bank_code")?.trim();
@@ -78,10 +41,12 @@ function buildSpaydFromSearchParams(searchParams: URLSearchParams): string {
   if (!variableSymbol) throw new Error("Missing variable_symbol");
   if (!note) throw new Error("Missing note");
 
-  const bankCodePadded = bankCode.padStart(4, "0");
+  const bankCodePadded = bankCode.replace(/\D/g, "").padStart(4, "0");
   const amount = parseAmountCzk(amountRaw);
   const msg = sanitizeMsg(note);
-  const acc = buildSpaydAcc(payTo, bankCodePadded);
+  const acc = formatAccountForSPAYD(payTo, bankCodePadded);
+  const vsDigits = variableSymbol.replace(/\D/g, "").substring(0, 10);
+  if (!vsDigits) throw new Error("Invalid variable_symbol");
 
   // SPAYD fields are '*' delimited; spec expects the descriptor to end with '*'.
   return [
@@ -89,7 +54,7 @@ function buildSpaydFromSearchParams(searchParams: URLSearchParams): string {
     `ACC:${acc}`,
     `AM:${amount.toFixed(2)}`,
     "CC:CZK",
-    `VS:${variableSymbol}`,
+    `X-VS:${vsDigits}`,
     `MSG:${msg}`,
   ].join("*") + "*";
 }

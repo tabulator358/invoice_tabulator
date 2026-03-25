@@ -1,73 +1,86 @@
 import { InvoiceData } from "@/types/invoice";
 
-/**
- * Converts Czech bank account format (123456789/0100) to IBAN format
- * For SPAYD, we can use either IBAN or Czech format, but IBAN is preferred
- */
 function normalizeDashes(input: string): string {
   // Normalize different dash characters (copy/paste) to a simple '-'
   return input.replace(/[–—−]/g, "-");
 }
 
-function normalizeCzechBankAccountWithPrefix(account: string): string {
-  // Expected input formats (after trimming/spaces removal):
-  // - 123456789/0100
-  // - prefix-accountNumber/0100  (předčíslí-číslo účtu)
-  //   Pomlčka: mezi předčíslím a číslem účtu musí být právě jedna pomlčka (mínus).
-  const cleaned = normalizeDashes(account.replace(/\s/g, ""));
-
-  // If no bank code separator, we can't normalize the prefix/account reliably.
-  const slashIndex = cleaned.indexOf("/");
-  if (slashIndex === -1) return cleaned;
-
-  const accountPartRaw = cleaned.slice(0, slashIndex);
-  const bankCodeRaw = cleaned.slice(slashIndex + 1);
-
-  const bankCodeDigits = bankCodeRaw.replace(/\D/g, "");
-  const bankCodePadded = bankCodeDigits.padStart(4, "0").slice(-4);
-
-  // If it's in prefix-accountNumber format, convert it to the 10-digit account
-  // used by SPAYD (prefix(4 digits) + last6(accountNumber)).
-  if (accountPartRaw.includes("-")) {
-    const [prefixRaw, ...rest] = accountPartRaw.split("-");
-    const accountDigitsRaw = rest.join(""); // remove extra '-' if any
-
-    const prefixDigits = prefixRaw.replace(/\D/g, "");
-    const accountDigits = accountDigitsRaw.replace(/\D/g, "");
-
-    // Preserve the dash exactly like in the input:
-    // 7720-77628031/0710
-    const czechAccount = `${prefixDigits}-${accountDigits}`;
-    return `${czechAccount}/${bankCodePadded}`;
+function mod97(value: string): number {
+  let remainder = 0;
+  for (const char of value) {
+    remainder = (remainder * 10 + Number(char)) % 97;
   }
-
-  // Fallback: keep as Czech account, but remove non-digits from the account number.
-  const accountDigits = accountPartRaw.replace(/\D/g, "");
-  return `${accountDigits}/${bankCodePadded}`;
+  return remainder;
 }
 
-function formatAccountForSPAYD(account: string): string {
-  const cleaned = normalizeDashes(account);
+function isValidCzIban(iban: string): boolean {
+  if (!/^CZ\d{22}$/.test(iban)) return false;
+  const rearranged = `${iban.slice(4)}1235${iban.slice(2, 4)}`;
+  return mod97(rearranged) === 1;
+}
 
-  // If already IBAN format (starts with CZ), return as is (remove spaces)
-  if (cleaned.toUpperCase().startsWith("CZ")) {
-    return cleaned.replace(/\s/g, "").toUpperCase();
+function parseCzechLocalAccount(account: string, bankCodeOverride?: string): {
+  accountNumber: string;
+  prefix: string;
+  bankCode: string;
+} {
+  const cleaned = normalizeDashes(account.replace(/\s/g, ""));
+  const slashIndex = cleaned.indexOf("/");
+
+  const accountPartRaw = slashIndex === -1 ? cleaned : cleaned.slice(0, slashIndex);
+  const bankCodeRaw = slashIndex === -1 ? bankCodeOverride ?? "" : cleaned.slice(slashIndex + 1);
+
+  const bankCodeDigits = bankCodeRaw.replace(/\D/g, "");
+  if (!bankCodeDigits || bankCodeDigits.length > 4) {
+    throw new Error("Invalid Czech bank code for IBAN conversion");
   }
 
-  // For Czech format, normalize potential "předčíslí-číslo účtu/XXXX" into SPAYD-compatible
-  // 10-digit account (prefix(4 digits) + last6(accountNumber)).
-  return normalizeCzechBankAccountWithPrefix(cleaned);
+  const [prefixRaw, ...rest] = accountPartRaw.split("-");
+  const hasPrefix = rest.length > 0;
+
+  const prefixDigits = hasPrefix ? prefixRaw.replace(/\D/g, "") : "";
+  const accountDigits = (hasPrefix ? rest.join("") : prefixRaw).replace(/\D/g, "");
+
+  if (!accountDigits || accountDigits.length > 10) {
+    throw new Error("Invalid Czech account number for IBAN conversion");
+  }
+  if (prefixDigits.length > 6) {
+    throw new Error("Invalid Czech account prefix for IBAN conversion");
+  }
+
+  return {
+    accountNumber: accountDigits.padStart(10, "0"),
+    prefix: prefixDigits.padStart(6, "0"),
+    bankCode: bankCodeDigits.padStart(4, "0"),
+  };
+}
+
+export function formatAccountForSPAYD(account: string, bankCodeOverride?: string): string {
+  const normalized = normalizeDashes(account).replace(/\s/g, "").toUpperCase();
+
+  if (normalized.startsWith("CZ")) {
+    if (!isValidCzIban(normalized)) {
+      throw new Error("Invalid CZ IBAN format");
+    }
+    return normalized;
+  }
+
+  const local = parseCzechLocalAccount(normalized, bankCodeOverride);
+  const bban = `${local.bankCode}${local.prefix}${local.accountNumber}`;
+  const checksum = 98 - mod97(`${bban}123500`);
+  const checksumStr = String(checksum).padStart(2, "0");
+  return `CZ${checksumStr}${bban}`;
 }
 
 /**
  * Generates SPAYD (Short Payment Descriptor) string for Czech QR payments
- * Format: SPD*1.0*ACC:{account}*AM:{amount}*CC:{currency}*VS:{variable_symbol}*MSG:{message}
+ * Format: SPD*1.0*ACC:{IBAN}*AM:{amount}*CC:{currency}*X-VS:{variable_symbol}*MSG:{message}
  * 
  * According to Czech SPAYD specification:
- * - ACC: Account in IBAN format (preferred) or Czech format
+ * - ACC: Account in IBAN format
  * - AM: Amount with 2 decimal places
  * - CC: Currency code (3 letters)
- * - VS: Variable symbol (numeric, up to 10 digits)
+ * - X-VS: Variable symbol (numeric, up to 10 digits)
  * - MSG: Message (UTF-8, max 60 chars, no URL encoding needed)
  */
 export function generateSPAYD(invoiceData: InvoiceData, total: number): string {
@@ -87,12 +100,12 @@ export function generateSPAYD(invoiceData: InvoiceData, total: number): string {
   const currency = (invoiceData.currencyCode?.toUpperCase() || "CZK").substring(0, 3);
   parts.push(`CC:${currency}`);
 
-  // Variable Symbol (VS) - optional but recommended
+  // Variable Symbol (X-VS) - optional but recommended for Czech payments
   if (invoiceData.invoiceNumber) {
     // Extract numeric part, max 10 digits
     const variableSymbol = invoiceData.invoiceNumber.replace(/\D/g, "").substring(0, 10);
     if (variableSymbol && variableSymbol.length > 0) {
-      parts.push(`VS:${variableSymbol}`);
+      parts.push(`X-VS:${variableSymbol}`);
     }
   }
 
