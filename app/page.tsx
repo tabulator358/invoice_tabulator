@@ -1,5 +1,5 @@
 import Link from "next/link";
-import InvoiceTableDemo from "@/app/components/InvoiceTableDemo";
+import InvoiceTableDemo from "@/components/InvoiceTableDemo";
 
 export default function Home() {
   return (
@@ -8,7 +8,7 @@ export default function Home() {
       <header className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Invoicer</h1>
+            <h1 className="text-2xl font-bold text-gray-900">invoicetable</h1>
             <nav className="flex gap-8">
               <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Features
@@ -225,7 +225,7 @@ export default function Home() {
               <iframe
                 className="absolute inset-0 w-full h-full"
                 src="https://www.youtube.com/embed/dX-3886-0BM"
-                title="Invoicer demo video"
+                title="invoicetable demo video"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
@@ -256,7 +256,7 @@ export default function Home() {
       <footer className="border-t border-gray-200 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-gray-600">
-            <p className="mb-2">© 2024 Invoicer. Simple invoice generation from Google Sheets.</p>
+            <p className="mb-2">© 2024 invoicetable. Simple invoice generation from Google Sheets.</p>
             <p className="text-sm">No signup required. No data stored. Privacy-first.</p>
           </div>
         </div>

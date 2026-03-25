@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Invoicer - Professional Invoices from Google Sheets",
+  title: "invoicetable - Professional Invoices from Google Sheets",
   description: "Generate beautiful, professional invoices directly from your Google Sheets. Choose from 50 templates, no signup required.",
 };
 

@@ -1,4 +1,4 @@
-# Invoicer - Professional Invoice Generator
+# invoicetable - Professional Invoice Generator
 
 Generate beautiful, professional invoices directly from Google Sheets. Choose from 50 customizable templates with no signup required.
 
