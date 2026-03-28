@@ -1,15 +1,26 @@
 import Link from "next/link";
 import InvoiceTableDemo from "@/components/InvoiceTableDemo";
 
+const GOOGLE_SHEETS_COPY_URL =
+  "https://docs.google.com/spreadsheets/d/1CFG2-4_wD285WKL3NKCmIi4IJru2m9pIB5In0QS-jus/copy";
+const GOOGLE_SHEETS_PREVIEW_URL =
+  "https://docs.google.com/spreadsheets/d/1CFG2-4_wD285WKL3NKCmIi4IJru2m9pIB5In0QS-jus/edit?usp=sharing";
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-4 flex-wrap">
             <h1 className="text-2xl font-bold text-gray-900">invoicetable</h1>
-            <nav className="flex gap-8">
+            <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 sm:gap-8">
+              <Link
+                href="#google-sheets"
+                className="text-sm font-medium text-gray-900 underline decoration-gray-300 underline-offset-4 hover:decoration-gray-500 transition-colors"
+              >
+                Google Sheets copy
+              </Link>
               <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Features
               </Link>
@@ -36,24 +47,60 @@ export default function Home() {
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
             Turn Your Spreadsheet Into Professional Invoices
           </h2>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-gray-600 mb-4">
             Just add your data to Google Sheets. We turn it into beautiful invoices instantly.
             No account needed. Seriously, it&apos;s that simple.
           </p>
-          <div className="flex gap-4 justify-center">
+          <p className="text-base text-gray-600 mb-8 max-w-xl mx-auto">
+            Start with a copy of our sheet in your Drive — then add data and use the invoice links.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
+            <a
+              href={GOOGLE_SHEETS_COPY_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
+            >
+              <svg
+                className="h-4 w-4 shrink-0 opacity-90"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+                />
+              </svg>
+              Make your own Google Sheet copy
+            </a>
             <Link
               href="/templates"
-              className="px-8 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+              className="inline-flex items-center justify-center px-6 py-2.5 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
             >
               See Templates
             </Link>
             <Link
               href="#guide"
-              className="px-8 py-3 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="inline-flex items-center justify-center px-6 py-2.5 text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
             >
               How It Works
             </Link>
           </div>
+          <p className="mt-5 text-sm text-gray-500">
+            <a
+              href={GOOGLE_SHEETS_PREVIEW_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="text-gray-700 underline underline-offset-4 decoration-gray-300 hover:decoration-gray-500"
+            >
+              Preview the sheet
+            </a>
+            {" "}without copying.
+          </p>
         </div>
       </section>
 
@@ -187,41 +234,61 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Resources Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          <div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-6 text-center">Google Sheets Links</h3>
-            <div className="space-y-4">
-              <div className="p-6 border border-gray-200 rounded-xl">
-                <p className="text-lg font-semibold text-gray-900 mb-2">Preview sheet</p>
-                <Link
-                  href="https://docs.google.com/spreadsheets/d/1CFG2-4_wD285WKL3NKCmIi4IJru2m9pIB5In0QS-jus/edit?usp=sharing"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-gray-900 font-medium underline underline-offset-4"
-                >
-                  Open in Google Sheets
-                </Link>
-              </div>
+      {/* Resources Section — Google Sheets */}
+      <section id="google-sheets" className="scroll-mt-24 py-24 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="text-center">
+            <h3 className="text-3xl font-bold text-gray-900 mb-3">
+              Google Sheets
+            </h3>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Copy the template to your Drive, then fill in rows — each line can link to a printable invoice.
+            </p>
+          </div>
 
-              <div className="p-6 border border-gray-200 rounded-xl">
-                <p className="text-lg font-semibold text-gray-900 mb-2">Template table (source)</p>
-                <Link
-                  href="https://docs.google.com/spreadsheets/d/1CFG2-4_wD285WKL3NKCmIi4IJru2m9pIB5In0QS-jus/copy"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-gray-900 font-medium underline underline-offset-4"
-                >
+          <div className="rounded-xl border border-gray-200 bg-white p-6 sm:p-7">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-1">
                   Make your own copy
-                </Link>
+                </h4>
+                <p className="text-sm text-gray-600 max-w-xl">
+                  Saves a private spreadsheet in your Google account.
+                </p>
               </div>
+              <a
+                href={GOOGLE_SHEETS_COPY_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+              >
+                Copy to my Drive
+              </a>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-1">Preview</h4>
+                <p className="text-sm text-gray-600">
+                  View the public sheet (read-only). To edit, use your own copy above.
+                </p>
+              </div>
+              <a
+                href={GOOGLE_SHEETS_PREVIEW_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-50"
+              >
+                Open in Google Sheets
+              </a>
             </div>
           </div>
 
           <div>
             <h3 className="text-3xl font-bold text-gray-900 mb-6 text-center">Video walkthrough</h3>
-            <div className="relative pt-[56.25%] rounded-2xl overflow-hidden shadow-lg">
+            <div className="relative pt-[56.25%] rounded-xl overflow-hidden border border-gray-200 shadow-sm">
               <iframe
                 className="absolute inset-0 w-full h-full"
                 src="https://www.youtube.com/embed/dX-3886-0BM"
