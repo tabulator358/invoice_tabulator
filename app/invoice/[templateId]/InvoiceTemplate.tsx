@@ -53,6 +53,12 @@ const getTemplateConfig = (id: number) => {
   return additionalColors[(validId - 11) % additionalColors.length];
 };
 
+const parseRgb = (rgbStr: string): [number, number, number] => {
+  const match = rgbStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (!match) return [28, 63, 170];
+  return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])];
+};
+
 export default function InvoiceTemplate({ templateId, invoiceData, total }: InvoiceTemplateProps) {
   const invoiceRef = useRef<HTMLDivElement>(null);
   const config = getTemplateConfig(templateId);
@@ -70,7 +76,13 @@ export default function InvoiceTemplate({ templateId, invoiceData, total }: Invo
   const formatAmount = (value: number) => currencyFormatter.format(value);
 
   const handleDownloadPDF = async () => {
-    await exportInvoicePdf(invoiceData, { total, title: "INVOICE" });
+    await exportInvoicePdf(invoiceData, {
+      total,
+      title: "INVOICE",
+      primaryColor: parseRgb(config.primaryColor),
+      accentColor: parseRgb(config.accentColor),
+      templateTextColor: parseRgb(config.textColor),
+    });
   };
 
   // Layout variations based on template ID

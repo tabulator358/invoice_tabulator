@@ -4,6 +4,10 @@ interface ExportInvoicePdfOptions {
   total: number;
   title?: string;
   includeSpayd?: string;
+  primaryColor?: [number, number, number];
+  accentColor?: [number, number, number];
+  templateTextColor?: [number, number, number];
+  returnBlob?: boolean;
 }
 
 const createCurrencyFormatter = (currencyCode: string, fallbackCode: string) => {
@@ -20,7 +24,9 @@ const createCurrencyFormatter = (currencyCode: string, fallbackCode: string) => 
 
 const toSingleLine = (value: string) => value.replace(/\s+/g, " ").trim();
 
-let fontsReadyPromise: Promise<void> | null = null;
+// Cache only the raw font data (base64), not the doc registration.
+// Each new jsPDF instance needs fonts registered separately.
+let fontDataPromise: Promise<{ regular: string; bold: string }> | null = null;
 
 const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
   const bytes = new Uint8Array(buffer);
@@ -34,8 +40,8 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
 };
 
 const ensureUnicodeFonts = async (doc: import("jspdf").jsPDF) => {
-  if (!fontsReadyPromise) {
-    fontsReadyPromise = (async () => {
+  if (!fontDataPromise) {
+    fontDataPromise = (async () => {
       const [regularFontResponse, boldFontResponse] = await Promise.all([
         fetch("/fonts/NotoSans-Regular.ttf"),
         fetch("/fonts/NotoSans-Bold.ttf"),
@@ -50,19 +56,24 @@ const ensureUnicodeFonts = async (doc: import("jspdf").jsPDF) => {
         boldFontResponse.arrayBuffer(),
       ]);
 
-      doc.addFileToVFS("NotoSans-Regular.ttf", arrayBufferToBase64(regularFontBuffer));
-      doc.addFont("NotoSans-Regular.ttf", "NotoSans", "normal");
-      doc.addFileToVFS("NotoSans-Bold.ttf", arrayBufferToBase64(boldFontBuffer));
-      doc.addFont("NotoSans-Bold.ttf", "NotoSans", "bold");
+      return {
+        regular: arrayBufferToBase64(regularFontBuffer),
+        bold: arrayBufferToBase64(boldFontBuffer),
+      };
     })();
   }
 
-  await fontsReadyPromise;
+  const { regular, bold } = await fontDataPromise;
+  // Register fonts into this specific doc instance every time
+  doc.addFileToVFS("NotoSans-Regular.ttf", regular);
+  doc.addFont("NotoSans-Regular.ttf", "NotoSans", "normal");
+  doc.addFileToVFS("NotoSans-Bold.ttf", bold);
+  doc.addFont("NotoSans-Bold.ttf", "NotoSans", "bold");
 };
 
 export const exportInvoicePdf = async (
   invoiceData: InvoiceData,
-  { total, title = "INVOICE", includeSpayd }: ExportInvoicePdfOptions
+  { total, title = "INVOICE", includeSpayd, primaryColor, accentColor, templateTextColor, returnBlob }: ExportInvoicePdfOptions
 ) => {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -75,12 +86,18 @@ export const exportInvoicePdf = async (
   const rightColumnX = marginX + leftColumnWidth + 10;
   const rightColumnWidth = contentWidth - leftColumnWidth - 10;
 
-  const headingColor: [number, number, number] = [28, 63, 170];
-  const textColor: [number, number, number] = [33, 37, 41];
-  const mutedColor: [number, number, number] = [108, 117, 125];
-  const lineColor: [number, number, number] = [222, 226, 230];
+  const headingColor: [number, number, number] = primaryColor ?? [28, 63, 170];
+  const textColor: [number, number, number] = templateTextColor ?? [33, 37, 41];
+  const mutedColor: [number, number, number] = primaryColor
+    ? [Math.min(255, primaryColor[0] + 60), Math.min(255, primaryColor[1] + 60), Math.min(255, primaryColor[2] + 60)]
+    : [108, 117, 125];
+  const lineColor: [number, number, number] = accentColor ?? [222, 226, 230];
 
-  let y = 18;
+  // Top color bar (matches the web template accent strip)
+  doc.setFillColor(...headingColor);
+  doc.rect(0, 0, pageWidth, 4, "F");
+
+  let y = 20;
 
   doc.setFont("NotoSans", "bold");
   doc.setFontSize(24);
@@ -119,20 +136,25 @@ export const exportInvoicePdf = async (
   const customerLines = blockBody(invoiceData.customer, rightColumnX, y + 6, rightColumnWidth);
   y += Math.max(supplierLines, customerLines) * 5 + 12;
 
+  // Accent background box for date/account details
+  const boxHeight = 18;
+  doc.setFillColor(...lineColor);
+  doc.roundedRect(marginX, y - 4, contentWidth, boxHeight, 2, 2, "F");
+
   doc.setFont("NotoSans", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(...mutedColor);
-  doc.text("Issue Date", marginX, y);
-  doc.text("Due Date", marginX + 40, y);
-  doc.text("Bank Account", marginX + 80, y);
+  doc.setFontSize(9);
+  doc.setTextColor(...headingColor);
+  doc.text("Issue Date", marginX + 3, y + 1);
+  doc.text("Due Date", marginX + 60, y + 1);
+  doc.text("Bank Account", marginX + 110, y + 1);
 
   doc.setFont("NotoSans", "normal");
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setTextColor(...textColor);
-  doc.text(invoiceData.issueDate || "-", marginX, y + 6);
-  doc.text(invoiceData.dueDate || "-", marginX + 40, y + 6);
-  doc.text(invoiceData.bankAccount || "-", marginX + 80, y + 6);
-  y += 14;
+  doc.text(invoiceData.issueDate || "-", marginX + 3, y + 8);
+  doc.text(invoiceData.dueDate || "-", marginX + 60, y + 8);
+  doc.text(invoiceData.bankAccount || "-", marginX + 110, y + 8);
+  y += 20;
 
   doc.setDrawColor(...lineColor);
   doc.line(marginX, y, pageWidth - marginX, y);
@@ -142,32 +164,47 @@ export const exportInvoicePdf = async (
   const formatAmount = (value: number) => formatter.format(value);
   const quantityPrice = `${invoiceData.quantity} x ${formatAmount(invoiceData.price)}`;
 
+  // Column positions: Description | Qty × Price | Amount
+  // Description: x=15, width=80 → ends at x=95
+  // Qty × Price: right-aligned at x=152 (starts ~100 for typical values)
+  // Amount: right-aligned at x=195
+  const descWidth = 80;
+  const qtyColRight = 152;
+  const amountColRight = pageWidth - marginX;
+
   doc.setFont("NotoSans", "bold");
   doc.setFontSize(10);
   doc.setTextColor(...mutedColor);
   doc.text("Description", marginX, y);
-  doc.text("Quantity x Price", marginX + 105, y, { align: "right" });
-  doc.text("Amount", pageWidth - marginX, y, { align: "right" });
+  doc.text("Qty \u00d7 Price", qtyColRight, y, { align: "right" });
+  doc.text("Amount", amountColRight, y, { align: "right" });
   y += 6;
 
   doc.setFont("NotoSans", "normal");
   doc.setFontSize(11);
   doc.setTextColor(...textColor);
-  const descriptionLines = doc.splitTextToSize(invoiceData.description || "-", 95);
+  const descriptionLines = doc.splitTextToSize(invoiceData.description || "-", descWidth);
   doc.text(descriptionLines, marginX, y);
-  doc.text(quantityPrice, marginX + 105, y, { align: "right" });
-  doc.text(formatAmount(total), pageWidth - marginX, y, { align: "right" });
+  doc.text(quantityPrice, qtyColRight, y, { align: "right" });
+  doc.text(formatAmount(total), amountColRight, y, { align: "right" });
   y += Math.max(descriptionLines.length * 5, 8) + 3;
 
   doc.setDrawColor(...lineColor);
   doc.line(marginX, y, pageWidth - marginX, y);
   y += 10;
 
+  // Colored background for Total row
+  const totalBoxWidth = 90;
+  const totalBoxX = pageWidth - marginX - totalBoxWidth;
+  doc.setFillColor(...headingColor);
+  doc.roundedRect(totalBoxX, y - 5, totalBoxWidth, 12, 2, 2, "F");
+
   doc.setFont("NotoSans", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(...headingColor);
-  doc.text(`Total: ${formatAmount(total)}`, pageWidth - marginX, y, { align: "right" });
-  y += 12;
+  doc.setFontSize(12);
+  doc.setTextColor(255, 255, 255);
+  doc.text("TOTAL", totalBoxX + 4, y + 3);
+  doc.text(formatAmount(total), pageWidth - marginX - 3, y + 3, { align: "right" });
+  y += 14;
 
   if (invoiceData.comment) {
     doc.setFont("NotoSans", "bold");
@@ -198,6 +235,9 @@ export const exportInvoicePdf = async (
     doc.text(spaydLines, marginX, y);
   }
 
+  if (returnBlob) {
+    return doc.output("blob") as Blob;
+  }
   const filename = `${invoiceData.invoiceNumber || "invoice"}.pdf`;
   doc.save(filename);
 };

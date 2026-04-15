@@ -55,6 +55,12 @@ const getTemplateConfig = (id: number) => {
   return additionalColors[(validId - 11) % additionalColors.length];
 };
 
+const parseRgb = (rgbStr: string): [number, number, number] => {
+  const match = rgbStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (!match) return [28, 63, 170];
+  return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])];
+};
+
 // QR Code Component
 const QRCodeSection = ({ spaydString, config }: { spaydString: string; config: ReturnType<typeof getTemplateConfig> }) => {
   return (
@@ -91,7 +97,14 @@ export default function CZInvoiceTemplate({ templateId, invoiceData, total }: CZ
   const formatAmount = (value: number) => currencyFormatter.format(value);
 
   const handleDownloadPDF = async () => {
-    await exportInvoicePdf(invoiceData, { total, title: "INVOICE (CZ)", includeSpayd: spaydString });
+    await exportInvoicePdf(invoiceData, {
+      total,
+      title: "INVOICE (CZ)",
+      includeSpayd: spaydString,
+      primaryColor: parseRgb(config.primaryColor),
+      accentColor: parseRgb(config.accentColor),
+      templateTextColor: parseRgb(config.textColor),
+    });
   };
 
   // Layout variations based on template ID
