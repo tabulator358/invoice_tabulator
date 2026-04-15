@@ -152,6 +152,7 @@ export default function PdfTestCzPage() {
               title: "FAKTURA (CZ)",
               includeSpayd: spayd,
               returnBlob: true,
+              layoutVariant: (i - 1) % 4,
               ...colors,
             }) as Blob;
             const b64 = await blobToBase64(blob);

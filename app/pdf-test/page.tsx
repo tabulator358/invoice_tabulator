@@ -76,7 +76,7 @@ export default function PdfTestPage() {
         setLog(l => [...l, { label: invLabel, status: "pending" }]);
         try {
           const blob = await exportInvoicePdf(testInvoice, {
-            total, title: "INVOICE", returnBlob: true, ...colors,
+            total, title: "INVOICE", returnBlob: true, layoutVariant: (i - 1) % 4, ...colors,
           }) as Blob;
           const b64 = await blobToBase64(blob);
           const { path } = await saveToDisk(invLabel, b64);
@@ -91,7 +91,7 @@ export default function PdfTestPage() {
         try {
           const blob = await exportInvoicePdf(testInvoice, {
             total, title: "FAKTURA (CZ)", includeSpayd: spayd,
-            returnBlob: true, ...colors,
+            returnBlob: true, layoutVariant: (i - 1) % 4, ...colors,
           }) as Blob;
           const b64 = await blobToBase64(blob);
           const { path } = await saveToDisk(czLabel, b64);

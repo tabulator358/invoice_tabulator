@@ -82,6 +82,7 @@ export default function InvoiceTemplate({ templateId, invoiceData, total }: Invo
       primaryColor: parseRgb(config.primaryColor),
       accentColor: parseRgb(config.accentColor),
       templateTextColor: parseRgb(config.textColor),
+      layoutVariant: templateId % 4,
     });
   };
 

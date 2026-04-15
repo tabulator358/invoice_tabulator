@@ -104,6 +104,7 @@ export default function CZInvoiceTemplate({ templateId, invoiceData, total }: CZ
       primaryColor: parseRgb(config.primaryColor),
       accentColor: parseRgb(config.accentColor),
       templateTextColor: parseRgb(config.textColor),
+      layoutVariant: templateId % 4,
     });
   };
 
