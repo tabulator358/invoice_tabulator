@@ -42,4 +42,5 @@ next-env.d.ts
 
 # local task fixtures (sensitive payment data, never commit)
 zadani/
+POSTUP_Hromadne_platby_RB.md
 
