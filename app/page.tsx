@@ -2,9 +2,9 @@ import Link from "next/link";
 import InvoiceTableDemo from "@/components/InvoiceTableDemo";
 
 const GOOGLE_SHEETS_COPY_URL =
-  "https://docs.google.com/spreadsheets/d/1CFG2-4_wD285WKL3NKCmIi4IJru2m9pIB5In0QS-jus/copy";
+  "https://docs.google.com/spreadsheets/d/1QOifJZtbuFj3WDeWo3VwjTgFbLOpKy6zz_gWEtN9GZw/copy";
 const GOOGLE_SHEETS_PREVIEW_URL =
-  "https://docs.google.com/spreadsheets/d/1CFG2-4_wD285WKL3NKCmIi4IJru2m9pIB5In0QS-jus/edit?usp=sharing";
+  "https://docs.google.com/spreadsheets/d/1QOifJZtbuFj3WDeWo3VwjTgFbLOpKy6zz_gWEtN9GZw/edit?usp=sharing";
 
 export default function Home() {
   return (
